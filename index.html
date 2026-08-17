@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ibra Hospital — ICU/CCU Checklists</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f1f5f9; min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #0f2744; color: white;
+  padding: 24px 20px 20px; text-align: center;
+}
+.logo-icon { font-size: 40px; margin-bottom: 10px; }
+.header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.header p  { font-size: 13px; color: rgba(255,255,255,0.65); }
+.gold-bar  { height: 3px; background: #c9a84c; }
+
+.content { flex: 1; padding: 24px 16px; max-width: 500px; margin: 0 auto; width: 100%; }
+.section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: #64748b; margin-bottom: 12px;
+}
+
+.checklist-card {
+  background: white; border-radius: 14px; padding: 18px 20px;
+  margin-bottom: 12px; border: 1.5px solid #e2e8f0;
+  display: flex; align-items: center; gap: 16px;
+  text-decoration: none; color: inherit;
+  transition: all 0.2s; cursor: pointer;
+}
+.checklist-card:hover {
+  border-color: #0f2744; transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(15,39,68,0.12);
+}
+.card-icon {
+  width: 50px; height: 50px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.icon-1 { background: #dbeafe; }
+.icon-2 { background: #dcfce7; }
+.icon-3 { background: #fef3c7; }
+.icon-4 { background: #fce7f3; }
+.icon-5 { background: #ede9fe; }
+
+.card-info { flex: 1; }
+.card-title { font-size: 15px; font-weight: 700; color: #0f2744; margin-bottom: 3px; }
+.card-sub   { font-size: 12px; color: #64748b; }
+.card-arrow { font-size: 18px; color: #94a3b8; }
+
+.coming-soon {
+  opacity: 0.5; cursor: not-allowed;
+}
+.coming-soon:hover {
+  transform: none; box-shadow: none; border-color: #e2e8f0;
+}
+.badge {
+  display: inline-block; background: #f1f5f9; color: #64748b;
+  font-size: 10px; font-weight: 700; padding: 2px 7px;
+  border-radius: 10px; margin-top: 4px;
+}
+
+.footer {
+  text-align: center; padding: 20px;
+  font-size: 11px; color: #94a3b8;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-icon">🏥</div>
+  <h1>Ibra Hospital — ICU/CCU</h1>
+  <p>Equipment & Inventory Checklists</p>
+</div>
+<div class="gold-bar"></div>
+
+<div class="content">
+  <div class="section-title" style="margin-top:8px">Select Checklist</div>
+
+  <a class="checklist-card" href="ICU_Checklist_v5.html">
+    <div class="card-icon icon-1">📋</div>
+    <div class="card-info">
+      <div class="card-title">ICU Inventory 1</div>
+      <div class="card-sub">Portable equipment, pumps, monitors, airways</div>
+    </div>
+    <div class="card-arrow">›</div>
+  </a>
+
+  <a class="checklist-card" href="ICU_Inventory_2.html">
+    <div class="card-icon icon-2">🧰</div>
+    <div class="card-info">
+      <div class="card-title">ICU Inventory 2</div>
+      <div class="card-sub">Clean utility, CSSD items, dirty utility</div>
+    </div>
+    <div class="card-arrow">›</div>
+  </a>
+
+  <a class="checklist-card" href="Intubation_Trolley.html">
+    <div class="card-icon icon-3">🫁</div>
+    <div class="card-info">
+      <div class="card-title">Intubation Trolley</div>
+      <div class="card-sub">Laryngoscopes, airways, stillets, accessories</div>
+    </div>
+    <div class="card-arrow">›</div>
+  </a>
+
+  <div class="checklist-card coming-soon">
+    <div class="card-icon icon-4">🚨</div>
+    <div class="card-info">
+      <div class="card-title">Crash Trolley</div>
+      <div class="card-sub">Emergency drugs, defibrillator, resuscitation</div>
+      <span class="badge">Coming Soon</span>
+    </div>
+    <div class="card-arrow">›</div>
+  </div>
+
+  <div class="checklist-card coming-soon">
+    <div class="card-icon icon-5">📦</div>
+    <div class="card-info">
+      <div class="card-title">ICU Inventory 3</div>
+      <div class="card-sub">Additional ICU supplies</div>
+      <span class="badge">Coming Soon</span>
+    </div>
+    <div class="card-arrow">›</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ibra Hospital ICU/CCU · AY 2025/2026
+</div>
+
+</body>
+</html>
