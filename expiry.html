@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expiry Tracker — Ibra Hospital ICU/CCU</title>
+<link rel="apple-touch-icon" sizes="180x180" href="?icon=1">
+<link rel="icon" href="?icon=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Expiry Tracker">
+<meta name="theme-color" content="#0f2744">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#F4F8F8; --surface:#FFFFFF; --surface-alt:#EBF2F2; --border:#DCE7E7;
+    --text:#152526; --text-2:#5C7274; --text-3:#8AA0A1;
+    --accent:#0f2744; --accent-2:#1a3a5c; --accent-soft:#e8edf5;
+    --danger:#C0392B; --danger-soft:#FBE8E5;
+    --urgent:#C9600F; --urgent-soft:#FCEBDB;
+    --warn:#B4820A; --warn-soft:#FBF1D6;
+    --safe:#2C7D5C; --safe-soft:#E3F3EB;
+    --shadow:0 1px 2px rgba(16,35,40,.06), 0 10px 28px -14px rgba(16,35,40,.22);
+    --radius:16px; --radius-sm:10px;
+    --font-display:'Archivo','IBM Plex Sans','Segoe UI',sans-serif;
+    --font-body:'IBM Plex Sans','Archivo','Segoe UI',sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0C1416; --surface:#121C1F; --surface-alt:#182426; --border:#26363A;
+      --text:#E8F0F0; --text-2:#9FB4B6; --text-3:#6E8688;
+      --accent:#4FC4C6; --accent-2:#7BD8D8; --accent-soft:#152C2C;
+      --danger:#E97C6E; --danger-soft:#2E1B18;
+      --urgent:#F0A05C; --urgent-soft:#2E2213;
+      --warn:#E6C359; --warn-soft:#2B2712;
+      --safe:#6BCB9C; --safe-soft:#16281F;
+      --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 32px -16px rgba(0,0,0,.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C1416; --surface:#121C1F; --surface-alt:#182426; --border:#26363A;
+    --text:#E8F0F0; --text-2:#9FB4B6; --text-3:#6E8688;
+    --accent:#4FC4C6; --accent-2:#7BD8D8; --accent-soft:#152C2C;
+    --danger:#E97C6E; --danger-soft:#2E1B18;
+    --urgent:#F0A05C; --urgent-soft:#2E2213;
+    --warn:#E6C359; --warn-soft:#2B2712;
+    --safe:#6BCB9C; --safe-soft:#16281F;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 32px -16px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--font-body); padding-inline:16px; }
+  .page{ max-width:1080px; margin:0 auto; padding-block:28px 60px; display:flex; flex-direction:column; gap:22px; }
+  h1,h2,h3{ text-wrap:balance; font-family:var(--font-display); margin:0; }
+  .tabular{ font-variant-numeric:tabular-nums; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .brand-mark{
+    width:46px; height:46px; flex:none; border-radius:13px;
+    background:linear-gradient(155deg, var(--accent), var(--accent-2));
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  }
+  .brand h1{ font-size:1.5rem; font-weight:800; color:var(--text); letter-spacing:.2px; }
+  .brand .subtitle{ margin:2px 0 0; font-size:.86rem; color:var(--text-2); }
+  .topbar-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .sync-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:.78rem; color:var(--text-2);
+    background:var(--surface-alt); border:1px solid var(--border); padding:6px 12px; border-radius:999px;
+    cursor:pointer;
+  }
+  .sync-pill .dot{ width:7px; height:7px; border-radius:50%; background:var(--safe); flex:none; }
+  .sync-pill.offline .dot{ background:var(--danger); }
+  .sync-pill.syncing .dot{ background:var(--warn); }
+
+  .btn{
+    font-family:var(--font-body); font-size:.9rem; font-weight:600;
+    border-radius:999px; border:1px solid transparent; padding:10px 20px; cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .btn:active{ transform:scale(.97); }
+  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .btn-primary{ background:var(--accent); color:#fff; box-shadow:var(--shadow); }
+  .btn-primary:hover{ background:var(--accent-2); }
+  .btn-ghost{ background:transparent; border-color:var(--border); color:var(--text-2); }
+  .btn-ghost:hover{ background:var(--surface-alt); }
+
+  .stats{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
+  .stat-tile{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px 18px; box-shadow:var(--shadow); position:relative; overflow:hidden;
+  }
+  .stat-tile::before{ content:""; position:absolute; inset-inline-start:0; top:0; bottom:0; width:4px; background:var(--tile-color, var(--accent)); }
+  .stat-label{ display:block; font-size:.78rem; color:var(--text-2); margin-bottom:6px; }
+  .stat-value{ display:block; font-size:1.9rem; font-weight:800; font-family:var(--font-display); color:var(--tile-color, var(--text)); }
+  .stat-danger{ --tile-color:var(--danger); }
+  .stat-urgent{ --tile-color:var(--urgent); }
+  .stat-warn{ --tile-color:var(--warn); }
+  .stat-total{ --tile-color:var(--accent); }
+
+  .info-banner{
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+    background:var(--accent-soft); border:1px solid var(--accent);
+    border-radius:var(--radius-sm); padding:12px 16px; font-size:.86rem; color:var(--text);
+  }
+  .info-banner.danger{ background:var(--danger-soft); border-color:var(--danger); }
+  .info-banner button{ flex:none; }
+
+  .toolbar{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:space-between; }
+  .search-wrap{ position:relative; flex:1 1 240px; min-width:200px; max-width:360px; }
+  .search-wrap svg{ position:absolute; inset-inline-start:12px; top:50%; transform:translateY(-50%); color:var(--text-3); }
+  .search-wrap input{
+    width:100%; padding:10px 14px; padding-inline-start:36px;
+    border-radius:999px; border:1px solid var(--border); background:var(--surface);
+    color:var(--text); font-family:var(--font-body); font-size:.88rem;
+  }
+  .search-wrap input:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .chips{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip{
+    font-family:var(--font-body); font-size:.82rem; font-weight:600;
+    border:1px solid var(--border); background:var(--surface); color:var(--text-2);
+    border-radius:999px; padding:7px 14px; cursor:pointer;
+  }
+  .chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .chip.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+
+  .list-head{ display:grid; grid-template-columns: 128px 1.9fr 1fr 84px 168px 84px; gap:10px; padding:0 18px; font-size:.76rem; color:var(--text-3); }
+  .list{ display:flex; flex-direction:column; gap:10px; }
+  .med-row{
+    display:grid; grid-template-columns: 128px 1.9fr 1fr 84px 168px 84px; align-items:center; gap:10px;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 18px; box-shadow:var(--shadow);
+  }
+  .med-row.pending{ opacity:.55; }
+  .badge{ display:inline-flex; align-items:center; gap:6px; font-size:.76rem; font-weight:700; padding:5px 10px; border-radius:999px; white-space:nowrap; }
+  .badge::before{ content:""; width:7px; height:7px; border-radius:50%; background:currentColor; flex:none; }
+  .badge-expired{ background:var(--danger-soft); color:var(--danger); }
+  .badge-urgent{ background:var(--urgent-soft); color:var(--urgent); }
+  .badge-warn{ background:var(--warn-soft); color:var(--warn); }
+  .badge-safe{ background:var(--safe-soft); color:var(--safe); }
+
+  .med-name{ font-weight:700; color:var(--text); }
+  .med-batch{ display:block; font-size:.78rem; color:var(--text-2); margin-top:2px; }
+  .med-location{ font-size:.86rem; color:var(--text-2); }
+  .med-qty{ font-size:.9rem; color:var(--text); }
+  .med-expiry{ display:flex; flex-direction:column; gap:2px; }
+  .med-expiry-date{ font-size:.86rem; color:var(--text); }
+  .med-expiry-rel{ font-size:.76rem; color:var(--text-2); }
+  .row-actions{ display:flex; gap:6px; justify-content:flex-end; }
+  .icon-btn{
+    width:30px; height:30px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text-2); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:hover{ background:var(--surface-alt); }
+  .icon-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .icon-btn.danger:hover{ background:var(--danger-soft); color:var(--danger); border-color:var(--danger); }
+  .icon-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+  .empty-state{ text-align:center; padding:48px 20px; color:var(--text-2); background:var(--surface); border:1px dashed var(--border); border-radius:var(--radius); }
+  .empty-state strong{ display:block; color:var(--text); margin-bottom:4px; font-family:var(--font-display); }
+
+  footer{ text-align:center; font-size:.78rem; color:var(--text-3); padding-top:8px; }
+
+  .modal-overlay{ position:fixed; inset:0; background:rgba(10,18,20,.5); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; }
+  .modal{ background:var(--surface); border-radius:var(--radius); padding:24px; width:100%; max-width:480px; box-shadow:0 20px 60px -20px rgba(0,0,0,.5); max-height:90vh; overflow-y:auto; }
+  .modal h2{ font-size:1.15rem; margin-bottom:16px; }
+  #medForm{ display:flex; flex-direction:column; gap:14px; }
+  #medForm label{ display:flex; flex-direction:column; gap:6px; font-size:.82rem; color:var(--text-2); }
+  #medForm input{
+    font-family:var(--font-body); font-size:.92rem; color:var(--text);
+    background:var(--surface-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px;
+  }
+  #medForm input:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .form-row-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:4px; }
+  .form-error{ font-size:.8rem; color:var(--danger); min-height:1em; }
+
+  @media (max-width: 760px){
+    .stats{ grid-template-columns:repeat(2, 1fr); }
+    .list-head{ display:none; }
+    .med-row{ grid-template-columns:1fr; gap:8px; }
+    .row-actions{ justify-content:flex-start; }
+    .form-row-2{ grid-template-columns:1fr; }
+  }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div style="margin-bottom:4px;">
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:.84rem;font-weight:600;color:#5C7274;text-decoration:none;background:#fff;border:1px solid #DCE7E7;border-radius:999px;padding:7px 14px;transition:all .15s;" onmouseover="this.style.background='#0f2744';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#5C7274'">&#8592; Back to Checklists</a>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="3.5" y="9.5" width="17" height="7" rx="3.5" transform="rotate(-35 12 12)" stroke="#fff" stroke-width="1.8"/>
+          <line x1="9.5" y1="10.3" x2="12.7" y2="13.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="18.2" cy="6.2" r="2" fill="#fff"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Expiry Tracker</h1>
+        <p class="subtitle">Ibra Hospital ICU/CCU &mdash; Medication &amp; Supply Expiry</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="sync-pill" id="syncStatus" type="button" title="Click to refresh now">
+        <span class="dot"></span><span id="syncText">Connecting…</span>
+      </button>
+      <button class="btn btn-ghost" id="exportBtn" type="button">Export snapshot</button>
+      <button class="btn btn-primary" id="openAddBtn" type="button">+ Add item</button>
+    </div>
+  </header>
+
+  <section class="stats" aria-label="Expiry status summary">
+    <div class="stat-tile stat-danger"><span class="stat-label">Expired</span><span class="stat-value tabular" id="statExpired">0</span></div>
+    <div class="stat-tile stat-urgent"><span class="stat-label">Urgent — within 7 days</span><span class="stat-value tabular" id="statUrgent">0</span></div>
+    <div class="stat-tile stat-warn"><span class="stat-label">Warning — within 30 days</span><span class="stat-value tabular" id="statWarn">0</span></div>
+    <div class="stat-tile stat-total"><span class="stat-label">Total items tracked</span><span class="stat-value tabular" id="statTotal">0</span></div>
+  </section>
+
+  <div class="info-banner" id="seedBanner" hidden>
+    <p>This is example data to preview the system — replace it with your unit's actual crash-cart inventory.</p>
+    <button class="btn btn-ghost" id="clearSeedBtn" type="button">Clear example data</button>
+  </div>
+
+  <div class="info-banner danger" id="errorBanner" hidden>
+    <p id="errorBannerText">Couldn't reach the shared sheet. Showing the last data loaded in this tab.</p>
+    <button class="btn btn-ghost" id="retryBtn" type="button">Retry now</button>
+  </div>
+
+  <section class="toolbar">
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><line x1="16.6" y1="16.6" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input id="searchInput" type="search" placeholder="Search by name or location…" aria-label="Search" />
+    </div>
+    <div class="chips" id="filterChips" role="tablist" aria-label="Filter by status">
+      <button class="chip active" data-filter="all" type="button">All</button>
+      <button class="chip" data-filter="expired" type="button">Expired</button>
+      <button class="chip" data-filter="urgent" type="button">Urgent</button>
+      <button class="chip" data-filter="warn" type="button">Warning</button>
+      <button class="chip" data-filter="safe" type="button">Safe</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="list-head"><span>Status</span><span>Item / Medication</span><span>Location</span><span>Qty</span><span>Expiry date</span><span></span></div>
+    <div class="list" id="medList"></div>
+  </section>
+
+  <footer id="pageFooter">Ibra Hospital ICU/CCU &middot; &copy; Mohammed Al Saifi 2026</footer>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">Add new medication</h2>
+    <form id="medForm">
+      <label>Item / Medication name &amp; strength
+        <input required id="fName" type="text" placeholder="e.g. Adrenaline (Epinephrine) 1mg/1mL, ETT size 7.5, Central line kit" />
+      </label>
+      <div class="form-row-2">
+        <label>Batch number<input id="fBatch" type="text" placeholder="e.g. A4521" /></label>
+        <label>Quantity<input id="fQty" type="number" min="0" step="1" placeholder="0" /></label>
+      </div>
+      <div class="form-row-2">
+        <label>Location<input id="fLocation" type="text" placeholder="e.g. Drawer 1 — Cardiac" /></label>
+        <label>Expiry date<input required id="fExpiry" type="date" /></label>
+      </div>
+      <label>Notes (optional)<input id="fNote" type="text" placeholder="e.g. Check on handover" /></label>
+      <p class="form-error" id="formError"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- shared-sheet config ----------
+  var CONFIG = {
+    API_URL: "https://script.google.com/macros/s/AKfycbyWbIpE1OM0CBeZgVpdYXpQWyhbfxTodILft5QdbEVikzdsLVm_bFE4HPPZF8Bf6MeY/exec",
+    TOKEN: "ICU@2026",
+    POLL_MS: 20000
+  };
+
+  var state = { meds: [], filter: "all", search: "", editingId: null, seedAttempted: false, pendingIds: {} };
+  var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var pollTimer = null;
+
+  var els = {
+    list: document.getElementById("medList"),
+    statExpired: document.getElementById("statExpired"),
+    statUrgent: document.getElementById("statUrgent"),
+    statWarn: document.getElementById("statWarn"),
+    statTotal: document.getElementById("statTotal"),
+    syncStatus: document.getElementById("syncStatus"),
+    syncText: document.getElementById("syncText"),
+    seedBanner: document.getElementById("seedBanner"),
+    clearSeedBtn: document.getElementById("clearSeedBtn"),
+    errorBanner: document.getElementById("errorBanner"),
+    errorBannerText: document.getElementById("errorBannerText"),
+    retryBtn: document.getElementById("retryBtn"),
+    searchInput: document.getElementById("searchInput"),
+    filterChips: document.getElementById("filterChips"),
+    openAddBtn: document.getElementById("openAddBtn"),
+    exportBtn: document.getElementById("exportBtn"),
+    modalOverlay: document.getElementById("modalOverlay"),
+    modalTitle: document.getElementById("modalTitle"),
+    medForm: document.getElementById("medForm"),
+    cancelBtn: document.getElementById("cancelBtn"),
+    fName: document.getElementById("fName"),
+    fBatch: document.getElementById("fBatch"),
+    fQty: document.getElementById("fQty"),
+    fLocation: document.getElementById("fLocation"),
+    fExpiry: document.getElementById("fExpiry"),
+    fNote: document.getElementById("fNote"),
+    formError: document.getElementById("formError"),
+    saveBtn: document.getElementById("saveBtn")
+  };
+
+  function pad(n){ return String(n).padStart(2,"0"); }
+  function addDaysISO(offset){
+    var d = new Date(); d.setDate(d.getDate() + offset);
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+  }
+  // Google Sheets sometimes returns a full ISO timestamp instead of a plain
+  // date if a cell was auto-converted — always take just the date part.
+  function normDate(v){
+    if(v === null || v === undefined) return "";
+    var s = String(v);
+    return s.split("T")[0];
+  }
+  function daysUntil(dateStr){
+    var today = new Date(); today.setHours(0,0,0,0);
+    var parts = normDate(dateStr).split("-").map(Number);
+    if(parts.length < 3 || parts.some(isNaN)) return 999999;
+    var exp = new Date(parts[0], parts[1]-1, parts[2]);
+    return Math.round((exp - today) / 86400000);
+  }
+  function statusFor(days){
+    if(days < 0) return "expired";
+    if(days <= 7) return "urgent";
+    if(days <= 30) return "warn";
+    return "safe";
+  }
+  var STATUS_LABEL = { expired:"Expired", urgent:"Urgent", warn:"Warning", safe:"Safe" };
+  function dayWord(n){ n = Math.abs(n); return n + (n === 1 ? " day" : " days"); }
+  function relativeLabel(days){
+    if(days === 0) return "Expires today";
+    if(days < 0) return "Expired " + dayWord(days) + " ago";
+    return dayWord(days) + " left";
+  }
+  function formatDate(dateStr){
+    var parts = normDate(dateStr).split("-").map(Number);
+    if(parts.length < 3 || parts.some(isNaN)) return dateStr || "—";
+    return parts[2] + " " + MONTHS[parts[1]-1] + " " + parts[0];
+  }
+  function newId(){ return "m-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,7); }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function seedRows(){
+    return [
+      { name:"Adrenaline (Epinephrine) 1mg/1mL", batchNo:"EP-2245", location:"Drawer 1 — Cardiac", quantity:20, expiryDate:addDaysISO(-15), note:"" },
+      { name:"Atropine Sulfate 0.6mg/1mL",        batchNo:"AT-1187", location:"Drawer 1 — Cardiac", quantity:15, expiryDate:addDaysISO(4),  note:"" },
+      { name:"Amiodarone 150mg/3mL",              batchNo:"AM-3390", location:"Drawer 1 — Cardiac", quantity:10, expiryDate:addDaysISO(18), note:"" },
+      { name:"Lidocaine 2% 5mL",                  batchNo:"LD-0921", location:"Drawer 1 — Cardiac", quantity:12, expiryDate:addDaysISO(-3), note:"" },
+      { name:"Vasopressin 20 unit/mL",             batchNo:"VP-6602", location:"Drawer 1 — Cardiac", quantity:5,  expiryDate:addDaysISO(6),  note:"" },
+      { name:"Calcium Gluconate 10% 10mL",        batchNo:"CG-4415", location:"Drawer 2 — Electrolytes", quantity:8,  expiryDate:addDaysISO(95), note:"" },
+      { name:"Sodium Bicarbonate 8.4% 50mL",      batchNo:"SB-7734", location:"Drawer 2 — Electrolytes", quantity:6,  expiryDate:addDaysISO(2),  note:"" },
+      { name:"Magnesium Sulfate 50% 2mL",         batchNo:"MG-2261", location:"Drawer 2 — Electrolytes", quantity:10, expiryDate:addDaysISO(200),note:"" },
+      { name:"Dextrose 50% 50mL",                 batchNo:"DX-5589", location:"Drawer 2 — Electrolytes", quantity:8,  expiryDate:addDaysISO(60), note:"" },
+      { name:"Naloxone 0.4mg/1mL",                batchNo:"NX-1120", location:"Drawer 3 — Airway", quantity:10, expiryDate:addDaysISO(25), note:"" },
+      { name:"Normal Saline 0.9% 500mL",          batchNo:"NS-8843", location:"Top Shelf — Fluids", quantity:20, expiryDate:addDaysISO(150),note:"" }
+    ].map(function(r){ r.id = newId(); r.seed = true; return r; });
+  }
+
+  // ---------- Apps Script API ----------
+  function apiGet(){
+    var url = CONFIG.API_URL + (CONFIG.API_URL.indexOf("?") > -1 ? "&" : "?") + "api=1&t=" + Date.now();
+    return fetch(url, { method: "GET" }).then(function(res){
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    });
+  }
+  // Writes go through GET (with the payload in the query string), not POST:
+  // Apps Script exec URLs redirect internally, and that redirect silently
+  // downgrades POST to GET and drops the body. GET survives the redirect.
+  function apiPost(action, data){
+    var url = CONFIG.API_URL + (CONFIG.API_URL.indexOf("?") > -1 ? "&" : "?") +
+      "action=" + encodeURIComponent(action) +
+      "&token=" + encodeURIComponent(CONFIG.TOKEN) +
+      "&data=" + encodeURIComponent(JSON.stringify(data)) +
+      "&t=" + Date.now();
+    return fetch(url, { method: "GET" }).then(function(res){
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    }).then(function(json){
+      if(json && json.error) throw new Error(json.error);
+      return json;
+    });
+  }
+
+  // ---------- rendering ----------
+  function computeStats(){
+    var c = { expired:0, urgent:0, warn:0, safe:0 };
+    state.meds.forEach(function(m){ c[statusFor(daysUntil(m.expiryDate))]++; });
+    return c;
+  }
+  function matchesFilter(m){
+    var st = statusFor(daysUntil(m.expiryDate));
+    if(state.filter !== "all" && st !== state.filter) return false;
+    if(state.search){
+      var q = state.search.trim().toLowerCase();
+      var hay = (m.name + " " + (m.location||"") + " " + (m.batchNo||"")).toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  }
+  function rowHtml(m){
+    var days = daysUntil(m.expiryDate);
+    var st = statusFor(days);
+    var qty = (m.quantity === undefined || m.quantity === null || m.quantity === "") ? "—" : m.quantity;
+    var pending = !!state.pendingIds[m.id];
+    return (
+      '<div class="med-row'+(pending?' pending':'')+'" data-id="'+escapeHtml(m.id)+'">' +
+        '<div><span class="badge badge-'+st+'">'+STATUS_LABEL[st]+'</span></div>' +
+        '<div><span class="med-name">'+escapeHtml(m.name)+'</span>'+(m.batchNo ? '<span class="med-batch">Batch: '+escapeHtml(m.batchNo)+'</span>' : '')+'</div>' +
+        '<div class="med-location">'+escapeHtml(m.location||"—")+'</div>' +
+        '<div class="med-qty tabular">'+escapeHtml(String(qty))+'</div>' +
+        '<div class="med-expiry"><span class="med-expiry-date tabular">'+formatDate(m.expiryDate)+'</span><span class="med-expiry-rel">'+relativeLabel(days)+'</span></div>' +
+        '<div class="row-actions">' +
+          '<button class="icon-btn" data-action="edit" title="Edit" type="button" '+(pending?'disabled':'')+'><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>' +
+          '<button class="icon-btn danger" data-action="delete" title="Delete" type="button" '+(pending?'disabled':'')+'><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+  function render(){
+    var stats = computeStats();
+    els.statExpired.textContent = stats.expired;
+    els.statUrgent.textContent = stats.urgent;
+    els.statWarn.textContent = stats.warn;
+    els.statTotal.textContent = state.meds.length;
+    els.seedBanner.hidden = !state.meds.some(function(m){ return m.seed; });
+
+    var sorted = state.meds.slice().sort(function(a,b){ return normDate(a.expiryDate) < normDate(b.expiryDate) ? -1 : normDate(a.expiryDate) > normDate(b.expiryDate) ? 1 : 0; });
+    var filtered = sorted.filter(matchesFilter);
+    els.list.innerHTML = filtered.length === 0
+      ? '<div class="empty-state"><strong>No matching items</strong>Try adjusting your search or filters, or add a new medication.</div>'
+      : filtered.map(rowHtml).join("");
+  }
+
+  // ---------- sync status ----------
+  function setSync(mode, text){
+    els.syncStatus.classList.remove("offline", "syncing");
+    if(mode) els.syncStatus.classList.add(mode);
+    els.syncText.textContent = text;
+  }
+  function showError(msg){
+    els.errorBanner.hidden = false;
+    els.errorBannerText.textContent = msg;
+  }
+  function hideError(){ els.errorBanner.hidden = true; }
+
+  // ---------- data flow ----------
+  function refresh(isInitial){
+    setSync("syncing", "Syncing…");
+    return apiGet().then(function(rows){
+      state.meds = (rows || []).map(function(r){
+        return {
+          id: String(r.id),
+          name: r.name || "",
+          batchNo: r.batchNo || "",
+          location: r.location || "",
+          quantity: (r.quantity === "" || r.quantity === undefined || r.quantity === null) ? null : Number(r.quantity),
+          expiryDate: normDate(r.expiryDate),
+          note: r.note || "",
+          seed: r.seed === true || r.seed === "TRUE" || r.seed === "true"
+        };
+      });
+      hideError();
+      setSync(null, "Connected — synced ~20s ago");
+      if(isInitial && state.meds.length === 0 && !state.seedAttempted){
+        state.seedAttempted = true;
+        return Promise.all(seedRows().map(function(r){ return apiPost("add", r); })).then(function(){
+          return refresh(false);
+        });
+      }
+      render();
+    }).catch(function(err){
+      setSync("offline", "Couldn't reach sheet");
+      showError("Couldn't reach the shared Google Sheet (" + err.message + "). Showing the last data loaded in this tab — open the sheet's web app URL directly in a browser tab to check it's still working.");
+      render();
+    });
+  }
+
+  function startPolling(){
+    if(pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(function(){ refresh(false); }, CONFIG.POLL_MS);
+  }
+
+  function markPending(id, on){
+    if(on) state.pendingIds[id] = true; else delete state.pendingIds[id];
+  }
+
+  function saveMed(data){
+    els.formError.textContent = "";
+    els.saveBtn.disabled = true;
+    var isEdit = !!state.editingId;
+    var promise = isEdit
+      ? apiPost("update", Object.assign({ id: state.editingId, seed: false }, data))
+      : apiPost("add", Object.assign({ id: newId(), seed: false }, data));
+    return promise.then(function(){
+      closeModal();
+      return refresh(false);
+    }).catch(function(err){
+      els.formError.textContent = "Couldn't save: " + err.message + ". Check your connection and try again.";
+    }).finally(function(){
+      els.saveBtn.disabled = false;
+    });
+  }
+
+  function deleteMed(id){
+    markPending(id, true); render();
+    apiPost("delete", { id: id }).then(function(){
+      return refresh(false);
+    }).catch(function(err){
+      markPending(id, false); render();
+      window.alert("Couldn't delete this item: " + err.message);
+    });
+  }
+
+  // ---------- modal ----------
+  function openModal(editing){
+    state.editingId = editing ? editing.id : null;
+    els.formError.textContent = "";
+    els.modalTitle.textContent = editing ? "Edit item" : "Add new item";
+    els.fName.value = editing ? editing.name : "";
+    els.fBatch.value = editing ? (editing.batchNo || "") : "";
+    els.fQty.value = editing && editing.quantity !== undefined && editing.quantity !== null ? editing.quantity : "";
+    els.fLocation.value = editing ? (editing.location || "") : "";
+    els.fExpiry.value = editing ? editing.expiryDate : "";
+    els.fNote.value = editing ? (editing.note || "") : "";
+    els.modalOverlay.hidden = false;
+    setTimeout(function(){ els.fName.focus(); }, 0);
+  }
+  function closeModal(){
+    els.modalOverlay.hidden = true;
+    state.editingId = null;
+    els.medForm.reset();
+  }
+
+  els.openAddBtn.addEventListener("click", function(){ openModal(null); });
+  els.cancelBtn.addEventListener("click", closeModal);
+  els.modalOverlay.addEventListener("click", function(e){ if(e.target === els.modalOverlay) closeModal(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !els.modalOverlay.hidden) closeModal(); });
+
+  els.medForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    var name = els.fName.value.trim();
+    var expiryDate = els.fExpiry.value;
+    if(!name || !expiryDate) return;
+    saveMed({
+      name: name,
+      batchNo: els.fBatch.value.trim(),
+      quantity: els.fQty.value === "" ? "" : Number(els.fQty.value),
+      location: els.fLocation.value.trim(),
+      expiryDate: expiryDate,
+      note: els.fNote.value.trim()
+    });
+  });
+
+  els.list.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn || btn.disabled) return;
+    var id = e.target.closest(".med-row").getAttribute("data-id");
+    if(btn.getAttribute("data-action") === "edit"){
+      var m = state.meds.find(function(x){ return x.id === id; });
+      if(m) openModal(m);
+    } else {
+      var med = state.meds.find(function(x){ return x.id === id; });
+      var label = med ? med.name : "this item";
+      if(window.confirm('Delete "' + label + '" from the list?')) deleteMed(id);
+    }
+  });
+
+  els.clearSeedBtn.addEventListener("click", function(){
+    if(!window.confirm("This will delete all example data from the shared sheet. Continue?")) return;
+    var ids = state.meds.filter(function(m){ return m.seed; }).map(function(m){ return m.id; });
+    ids.forEach(function(id){ markPending(id, true); });
+    render();
+    Promise.all(ids.map(function(id){ return apiPost("delete", { id: id }); })).then(function(){
+      return refresh(false);
+    }).catch(function(err){
+      window.alert("Couldn't clear example data: " + err.message);
+      ids.forEach(function(id){ markPending(id, false); });
+      render();
+    });
+  });
+
+  els.searchInput.addEventListener("input", function(){ state.search = els.searchInput.value; render(); });
+  els.filterChips.addEventListener("click", function(e){
+    var chip = e.target.closest(".chip");
+    if(!chip) return;
+    els.filterChips.querySelectorAll(".chip").forEach(function(c){ c.classList.remove("active"); });
+    chip.classList.add("active");
+    state.filter = chip.getAttribute("data-filter");
+    render();
+  });
+
+  els.syncStatus.addEventListener("click", function(){ refresh(false); });
+  els.retryBtn.addEventListener("click", function(){ refresh(false); });
+
+  els.exportBtn.addEventListener("click", function(){
+    var data = state.meds.map(function(m){
+      return { id:m.id, name:m.name, batchNo:m.batchNo, location:m.location, quantity:m.quantity, expiryDate:m.expiryDate, note:m.note };
+    });
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var d = new Date();
+    a.href = url;
+    a.download = "expiry-sentinel-snapshot-" + d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + ".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  });
+
+  // ---------- boot ----------
+  render();
+  refresh(true).then(startPolling);
+})();
+</script>
+</body>
+</html>
