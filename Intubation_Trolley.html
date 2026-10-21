@@ -350,15 +350,48 @@ const ITEMS = [
 ];
 const CATS = [...new Set(ITEMS.map(i=>i.cat))];
 
+
+/* ── SHIFT-DAY: day changes at 06:00, not midnight ── */
+function shiftDay(d) {
+  // If hour < 6, treat as previous calendar day (still "last night's" shift)
+  const dt = d || new Date();
+  if (dt.getHours() < 6) {
+    const prev = new Date(dt);
+    prev.setDate(prev.getDate() - 1);
+    return prev.toLocaleDateString('en-GB');
+  }
+  return dt.toLocaleDateString('en-GB');
+}
+/* For handover: find which calendar date the previous shift ran on */
+function prevShiftDate(currentShift) {
+  const now = new Date();
+  const h = now.getHours();
+  // Night shift (N) spans yesterday-today: 21:00 → 06:00
+  // Afternoon shift (A) runs 14:00 → 21:00
+  // Morning shift (M) runs 07:00 → 14:00
+  // When current shift is A (14:00–21:00), previous was Morning — same day
+  // When current shift is N (21:00–06:00), previous was Afternoon — same calendar day
+  // When current shift is M (07:00–14:00), previous was Night — Night ran yesterday 21:00 → today 06:00
+  //   so Night's submissions were recorded on YESTERDAY's date
+  if (currentShift === 'M') {
+    // Night ended this morning; its records were stamped with yesterday's date
+    const prev = new Date(now);
+    prev.setDate(prev.getDate() - 1);
+    return prev.toLocaleDateString('en-GB');
+  }
+  // For A and N, the previous shift was earlier today (same calendar day)
+  return now.toLocaleDateString('en-GB');
+}
+
 let state={}, shift='M', submitted=false, sheetData=[];
 ITEMS.forEach(i=>{ state[i.id]={ans:null,note:'',actual:''}; });
 
 /* ── INIT ── */
 function init(){
   const now=new Date();
-  document.getElementById('dDate').textContent=now.toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('dDate').textContent=(()=>{ const sd=new Date(now); if(now.getHours()<6) sd.setDate(sd.getDate()-1); return sd.toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); })();
   document.getElementById('dTime').textContent=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('dateShort').textContent=now.toLocaleDateString('en-GB');
+  document.getElementById('dateShort').textContent=shiftDay(now);
   renderCL(); updateProg();
 }
 
@@ -493,7 +526,7 @@ async function submitCL(){
   ITEMS.forEach(item=>{ sm[item.id]=state[item.id].ans==='yes'?'OK':state[item.id].ans==='no'?'ISSUE':'-'; });
 
   const payload={
-    date:now.toLocaleDateString('en-GB'),
+    date:shiftDay(now),
     time:now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
     shift:shiftLbl, nurse, submissionId:sid, allClear,
     issuesCount:fail.length,
@@ -517,7 +550,7 @@ async function submitCL(){
   document.getElementById('doneBanner').classList.add('on');
   document.getElementById('doneTxt').textContent=shiftLbl+' · '+nurse+' · '+ok.length+' OK · '+fail.length+' issues · '+now.toLocaleTimeString('en-GB')+(ok2?' · ✅ Saved':' · ⚠️ Failed');
 
-  document.getElementById('mMeta').textContent=now.toLocaleDateString('en-GB')+' · '+shiftLbl+' · '+nurse+' · '+sid;
+  document.getElementById('mMeta').textContent=shiftDay(now)+' · '+shiftLbl+' · '+nurse+' · '+sid;
   document.getElementById('mRows').innerHTML=[
     {l:'Items OK',    v:ok.length,   c:'s-ok'},
     {l:'Issues',      v:fail.length, c:fail.length>0?'s-fail':'s-ok'},
@@ -635,7 +668,7 @@ function renderDash(){
   const recent=[...data].slice(-8).reverse();
 
   // ── Build Inventory Status from latest submission today ──
-  const todayStr = new Date().toLocaleDateString('en-GB');
+  const todayStr = shiftDay();
   // Get latest submission (any shift today, or latest overall)
   const todayData = data.filter(r => gf(r,'Date') === todayStr);
   const latestRow = todayData.length > 0
@@ -774,8 +807,8 @@ async function checkHandover(newShift) {
     const j = await r.json();
     if (!j.data || j.data.length === 0) return;
 
-    const today = new Date().toLocaleDateString('en-GB');
-    // Find most recent submission from previous shift today
+    const today = prevShiftDate(newShift);
+    // Find most recent submission from previous shift (using shift-aware date)
     const prev = j.data.filter(row =>
       gf(row,'Date') === today &&
       gf(row,'Shift') === prevShift
