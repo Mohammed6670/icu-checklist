@@ -81,6 +81,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ntxt{width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;resize:none;font-family:inherit;outline:none;background:#fffbf0}
 .ntxt:focus{border-color:var(--amber)}
 
+/* STEPPER (qty > 10 items) */
+.stepper{display:flex;align-items:center;gap:0;border:1.5px solid var(--border);border-radius:8px;overflow:hidden}
+.stp-btn{width:34px;height:34px;border:none;background:#f8fafc;font-size:18px;font-weight:700;cursor:pointer;color:var(--navy);line-height:1;flex-shrink:0}
+.stp-btn:active{background:#e2e8f0}
+.stp-val{width:42px;text-align:center;font-size:15px;font-weight:700;color:var(--navy);border:none;border-left:1px solid var(--border);border-right:1px solid var(--border);padding:0 4px;height:34px;outline:none;background:#fff}
+.stp-issue{margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stp-flag{padding:5px 11px;border:1.5px solid #fca5a5;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:#991b1b}
+.stp-flag.on{background:#fee2e2}
+.stp-ok-lbl{font-size:12px;color:#166534;font-weight:600}
+.stp-diff{font-size:12px;color:#d97706;font-weight:600}
+
 /* DONE BANNER */
 .done{display:none;background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:14px;margin:12px 14px;text-align:center;max-width:680px;margin-left:auto;margin-right:auto}
 .done.on{display:block}
@@ -395,7 +406,7 @@ function prevShiftDate(currentShift) {
 }
 
 let state={}, shift='M', submitted=false, sheetData=[];
-ITEMS.forEach(i=>{ state[i.id]={ans:null,note:'',actual:''}; });
+ITEMS.forEach(i=>{ state[i.id]={ans:null,note:'',actual:'',count:i.qty>10?0:i.qty}; });
 
 /* ── INIT ── */
 function init(){
@@ -438,9 +449,44 @@ function renderCL(){
 
 function makeCard(item){
   const s=state[item.id];
+  const useCounter = item.qty > 10;
+  const isIssue = useCounter ? (s.ans==='no') : (s.ans==='no');
+  const isOk    = useCounter ? (s.ans==='yes') : (s.ans==='yes');
   const div=document.createElement('div');
-  div.className='card'+(s.ans==='yes'?' ok':s.ans==='no'?' fail':'');
+  div.className='card'+(isOk?' ok':isIssue?' fail':'');
   div.id='card-'+item.id;
+
+  let controlsHtml;
+  if(useCounter){
+    const cnt = s.count !== undefined ? s.count : item.qty;
+    const diff = cnt - item.qty;
+    const diffLbl = diff===0
+      ? '<span class="stp-ok-lbl">✓ Full count</span>'
+      : diff>0
+        ? '<span class="stp-ok-lbl">+'+diff+' extra</span>'
+        : '<span class="stp-diff">'+diff+' short</span>';
+    controlsHtml =
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'+
+        '<div class="stepper">'+
+          '<button class="stp-btn" onclick="stepCount('+item.id+',-1)">−</button>'+
+          '<input class="stp-val" type="number" min="0" id="cnt-'+item.id+'" value="'+cnt+'" oninput="setCnt('+item.id+',this.value)">'+
+          '<button class="stp-btn" onclick="stepCount('+item.id+',1)">+</button>'+
+        '</div>'+
+        '<div class="stp-issue">'+
+          diffLbl+
+          '<button class="stp-flag'+(s.ans==='no'?' on':'')+'" onclick="toggleIssue('+item.id+')">'+
+            (s.ans==='no'?'⚠️ Marked as Issue':'Mark as Issue')+
+          '</button>'+
+        '</div>'+
+      '</div>';
+  } else {
+    controlsHtml =
+      '<div class="btns">'+
+        '<button class="cbtn'+(s.ans==='yes'?' yes':'')+'" onclick="ans('+item.id+',\'yes\')">✓ Yes</button>'+
+        '<button class="cbtn'+(s.ans==='no' ?' no' :'')+'" onclick="ans('+item.id+',\'no\')">✗ No</button>'+
+      '</div>';
+  }
+
   div.innerHTML=
     '<div class="card-main">'+
       '<div class="cnum">'+item.id+'</div>'+
@@ -448,23 +494,12 @@ function makeCard(item){
         '<div class="cname">'+item.name+'</div>'+
         '<div class="cqty">Expected: <span class="qbadge">'+item.qty+'</span></div>'+
       '</div>'+
-      '<div class="btns">'+
-        '<button class="cbtn'+(s.ans==='yes'?' yes':'')+'" onclick="ans('+item.id+',\'yes\')">✓ Yes</button>'+
-        '<button class="cbtn'+(s.ans==='no' ?' no' :'')+'" onclick="ans('+item.id+',\'no\')">✗ No</button>'+
-      '</div>'+
+      controlsHtml+
     '</div>'+
-    (s.ans==='no'?
+    (isIssue?
       '<div class="cnote">'+
         '<div class="nlbl">⚠️ Describe the issue:</div>'+
         '<textarea class="ntxt" id="note-'+item.id+'" rows="2" placeholder="e.g. Missing, not functional..." oninput="saveNote('+item.id+')">'+s.note+'</textarea>'+
-        '<div style="display:flex;align-items:center;gap:8px;margin-top:8px">'+
-          '<div class="nlbl" style="margin:0;white-space:nowrap">📦 Actual quantity found:</div>'+
-          '<input type="number" min="0" id="actual-'+item.id+'" '+
-            'style="border:1px solid #fca5a5;border-radius:6px;padding:5px 8px;width:80px;font-size:13px;outline:none;" '+
-            'placeholder="0" value="'+(s.actual||'')+'" '+
-            'oninput="saveActual('+item.id+')">'+
-          '<span style="font-size:12px;color:#64748b">Expected: <strong>'+item.qty+'</strong></span>'+
-        '</div>'+
       '</div>':'');
   return div;
 }
@@ -476,11 +511,34 @@ function ans(id,a){
   document.getElementById('card-'+id).replaceWith(makeCard(ITEMS.find(i=>i.id===id)));
   updateProg(); updateAlert();
 }
+function stepCount(id,delta){
+  if(submitted) return;
+  const item=ITEMS.find(i=>i.id===id);
+  state[id].count=Math.max(0,(state[id].count ?? 0)+delta);
+  state[id].actual=String(state[id].count);
+  document.getElementById('card-'+id).replaceWith(makeCard(item));
+  updateProg(); updateAlert();
+}
+function setCnt(id,val){
+  if(submitted) return;
+  state[id].count=Math.max(0,parseInt(val)||0);
+  state[id].actual=String(state[id].count);
+  updateProg(); updateAlert();
+}
+function toggleIssue(id){
+  if(submitted) return;
+  const item=ITEMS.find(i=>i.id===id);
+  state[id].ans = state[id].ans==='no' ? 'yes' : 'no';
+  if(state[id].ans==='yes'){ state[id].note=''; }
+  document.getElementById('card-'+id).replaceWith(makeCard(item));
+  updateProg(); updateAlert();
+}
 function saveNote(id){ state[id].note=document.getElementById('note-'+id).value; }
 function saveActual(id){ state[id].actual=document.getElementById('actual-'+id).value; }
 
 function updateProg(){
-  const ok=ITEMS.filter(i=>state[i.id].ans==='yes').length;
+  // counter items (qty>10) are always "answered" — nurse sets the count
+  const ok=ITEMS.filter(i=>state[i.id].ans==='yes' || (i.qty>10 && state[i.id].ans!=='no')).length;
   const fail=ITEMS.filter(i=>state[i.id].ans==='no').length;
   const done=ok+fail; const total=ITEMS.length;
   document.getElementById('pFill').style.width=(done/total*100)+'%';
@@ -530,12 +588,16 @@ async function submitCL(){
   const shiftLbl={M:'Morning',A:'Afternoon',N:'Night'}[shift];
   const sd2=new Date(now); if(now.getHours()<6) sd2.setDate(sd2.getDate()-1);
   const sid='ICU-'+sd2.getFullYear()+String(sd2.getMonth()+1).padStart(2,'0')+String(sd2.getDate()).padStart(2,'0')+'-'+shift+'-'+Math.random().toString(36).substr(2,5).toUpperCase();
-  const ok=ITEMS.filter(i=>state[i.id].ans==='yes');
+  // counter items (qty>10) without explicit issue flag → treated as OK
+  const ok=ITEMS.filter(i=>state[i.id].ans==='yes' || (i.qty>10 && state[i.id].ans!=='no'));
   const fail=ITEMS.filter(i=>state[i.id].ans==='no');
   const allClear=fail.length===0?'YES':'NO';
 
   const sm={};
-  ITEMS.forEach(item=>{ sm[item.id]=state[item.id].ans==='yes'?'OK':state[item.id].ans==='no'?'ISSUE':'-'; });
+  ITEMS.forEach(item=>{
+    if(item.qty>10 && state[item.id].ans!=='no') sm[item.id]='OK ('+state[item.id].count+'/'+item.qty+')';
+    else sm[item.id]=state[item.id].ans==='yes'?'OK':state[item.id].ans==='no'?'ISSUE':'-';
+  });
 
   const payload={
     date:shiftDay(now),
@@ -595,7 +657,7 @@ function newCL(){
   document.getElementById('doneBanner').classList.remove('on');
   document.getElementById('alertBanner').classList.remove('on');
   document.getElementById('issSec').style.display='none';
-  ITEMS.forEach(i=>{state[i.id]={ans:null,note:'',actual:''};});
+  ITEMS.forEach(i=>{state[i.id]={ans:null,note:'',actual:'',count:i.qty>10?0:i.qty};});
   renderCL(); updateProg(); closeModal(); window.scrollTo(0,0);
 }
 
