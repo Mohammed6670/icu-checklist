@@ -476,9 +476,6 @@ function makeCard(item){
         '</div>'+
         '<div class="stp-issue">'+
           diffLbl+
-          '<button class="stp-flag'+(s.ans==='no'?' on':'')+'" onclick="toggleIssue('+item.id+')">'+
-            (s.ans==='no'?'⚠️ Marked as Issue':'Mark as Issue')+
-          '</button>'+
         '</div>'+
       '</div>';
   } else {
@@ -527,13 +524,17 @@ function stepCount(id,delta){
   const item=ITEMS.find(i=>i.id===id);
   state[id].count=Math.max(0,(state[id].count ?? 0)+delta);
   state[id].actual=String(state[id].count);
+  state[id].ans = state[id].count >= item.qty ? 'yes' : 'no';
   document.getElementById('card-'+id).replaceWith(makeCard(item));
   updateProg(); updateAlert();
 }
 function setCnt(id,val){
   if(submitted) return;
+  const item=ITEMS.find(i=>i.id===id);
   state[id].count=Math.max(0,parseInt(val)||0);
   state[id].actual=String(state[id].count);
+  state[id].ans = state[id].count >= item.qty ? 'yes' : 'no';
+  document.getElementById('card-'+id).replaceWith(makeCard(item));
   updateProg(); updateAlert();
 }
 function toggleIssue(id){
@@ -603,7 +604,7 @@ async function submitCL(){
 
   const sm={};
   ITEMS.forEach(item=>{
-    if(item.qty>10 && state[item.id].ans!=='no') sm[item.id]='OK ('+state[item.id].count+'/'+item.qty+')';
+    if(item.qty>10) sm[item.id]=state[item.id].ans==='yes'?'OK ('+state[item.id].count+'/'+item.qty+')':'ISSUE ('+state[item.id].count+'/'+item.qty+')';
     else sm[item.id]=state[item.id].ans==='yes'?'OK':state[item.id].ans==='no'?'ISSUE':'-';
   });
 

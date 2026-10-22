@@ -474,9 +474,6 @@ function makeCard(item){
         '</div>'+
         '<div class="stp-issue">'+
           diffLbl+
-          '<button class="stp-flag'+(s.ans==='no'?' on':'')+'" onclick="toggleIssue('+item.id+')">'+
-            (s.ans==='no'?'⚠️ Marked as Issue':'Mark as Issue')+
-          '</button>'+
         '</div>'+
       '</div>';
   } else {
@@ -525,13 +522,17 @@ function stepCount(id,delta){
   const item=ITEMS.find(i=>i.id===id);
   state[id].count=Math.max(0,(state[id].count ?? 0)+delta);
   state[id].actual=String(state[id].count);
+  state[id].ans = state[id].count >= item.qty ? 'yes' : 'no';
   document.getElementById('card-'+id).replaceWith(makeCard(item));
   updateProg(); updateAlert();
 }
 function setCnt(id,val){
   if(submitted) return;
+  const item=ITEMS.find(i=>i.id===id);
   state[id].count=Math.max(0,parseInt(val)||0);
   state[id].actual=String(state[id].count);
+  state[id].ans = state[id].count >= item.qty ? 'yes' : 'no';
+  document.getElementById('card-'+id).replaceWith(makeCard(item));
   updateProg(); updateAlert();
 }
 function toggleIssue(id){
@@ -546,8 +547,8 @@ function saveNote(id){ state[id].note=document.getElementById('note-'+id).value;
 function saveActual(id){ state[id].actual=document.getElementById('actual-'+id).value; }
 
 function updateProg(){
-  // counter items (qty>10) are always "answered" — nurse sets the count
-  const ok=ITEMS.filter(i=>state[i.id].ans==='yes' || (i.qty>10 && state[i.id].ans!=='no')).length;
+  // counter items: ans is always 'yes' or 'no' after first interaction
+  const ok=ITEMS.filter(i=>state[i.id].ans==='yes').length;
   const fail=ITEMS.filter(i=>state[i.id].ans==='no').length;
   const done=ok+fail; const total=ITEMS.length;
   document.getElementById('pFill').style.width=(done/total*100)+'%';
@@ -597,14 +598,13 @@ async function submitCL(){
   const shiftLbl={M:'Morning',A:'Afternoon',N:'Night'}[shift];
   const sd2=new Date(now); if(now.getHours()<6) sd2.setDate(sd2.getDate()-1);
   const sid='ICU-'+sd2.getFullYear()+String(sd2.getMonth()+1).padStart(2,'0')+String(sd2.getDate()).padStart(2,'0')+'-'+shift+'-'+Math.random().toString(36).substr(2,5).toUpperCase();
-  // counter items (qty>10) without explicit issue flag → treated as OK
-  const ok=ITEMS.filter(i=>state[i.id].ans==='yes' || (i.qty>10 && state[i.id].ans!=='no'));
+  const ok=ITEMS.filter(i=>state[i.id].ans==='yes');
   const fail=ITEMS.filter(i=>state[i.id].ans==='no');
   const allClear=fail.length===0?'YES':'NO';
 
   const sm={};
   ITEMS.forEach(item=>{
-    if(item.qty>10 && state[item.id].ans!=='no') sm[item.id]='OK ('+state[item.id].count+'/'+item.qty+')';
+    if(item.qty>10) sm[item.id]=state[item.id].ans==='yes'?'OK ('+state[item.id].count+'/'+item.qty+')':'ISSUE ('+state[item.id].count+'/'+item.qty+')';
     else sm[item.id]=state[item.id].ans==='yes'?'OK':state[item.id].ans==='no'?'ISSUE':'-';
   });
 
