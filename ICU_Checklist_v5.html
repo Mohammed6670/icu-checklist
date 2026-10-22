@@ -338,37 +338,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw_gxa3bET643iknD221frWYWKQcnSg_4FhZpI-ytf8Pr36AL0O8nPCHScFtUXyCqbNOw/exec';
 
 const ITEMS = [
-  {id:1, name:"Portable monitor",               qty:3,  cat:"Monitoring"},
+  {id:1, name:"Portable monitor",               qty:2,  cat:"Monitoring"},
   {id:2, name:"Pulse oximetry",                 qty:2,  cat:"Monitoring"},
   {id:3, name:"DVT compression (2 connection)", qty:2,  cat:"Monitoring"},
   {id:4, name:"Syringe pump",                   qty:36, cat:"Infusion Pumps"},
-  {id:5, name:"Infusion pump",                  qty:23, cat:"Infusion Pumps"},
-  {id:6, name:"Feeding pump",                   qty:8,  cat:"Infusion Pumps"},
+  {id:5, name:"Infusion pump",                  qty:22, cat:"Infusion Pumps"},
+  {id:6, name:"Feeding pump",                   qty:10, cat:"Infusion Pumps"},
   {id:7, name:"Defibrillator",                  qty:2,  cat:"Emergency Equipment"},
   {id:8, name:"ECG machine",                    qty:1,  cat:"Emergency Equipment"},
   {id:9, name:"Breast pump with connection",    qty:1,  cat:"Emergency Equipment"},
   {id:10,name:"Light on mobile stand",          qty:1,  cat:"Emergency Equipment"},
   {id:11,name:"Oxygen double flow meter",       qty:2,  cat:"Oxygen & Airways"},
-  {id:12,name:"O2 regulator",                   qty:2,  cat:"Oxygen & Airways"},
-  {id:13,name:"Oxygen twin port",               qty:2,  cat:"Oxygen & Airways"},
-  {id:14,name:"O2 trolley",                     qty:2,  cat:"Oxygen & Airways"},
-  {id:15,name:"O2 cylinder",                    qty:5,  cat:"Oxygen & Airways"},
+  {id:12,name:"Oxygen twin port",               qty:2,  cat:"Oxygen & Airways"},
+  {id:13,name:"Oxygen regulator",               qty:2,  cat:"Oxygen & Airways"},
+  {id:14,name:"Oxygen trolley",                 qty:2,  cat:"Oxygen & Airways"},
+  {id:15,name:"Oxygen cylinder",                qty:5,  cat:"Oxygen & Airways"},
   {id:16,name:"Emergency kit",                  qty:2,  cat:"Oxygen & Airways"},
-  {id:17,name:"Bed warmer",                     qty:1,  cat:"Patient Equipment"},
-  {id:18,name:"Extension board",                qty:2,  cat:"Patient Equipment"},
+  {id:17,name:"Bed warmer",                     qty:2,  cat:"Patient Equipment"},
+  {id:18,name:"Extension board",                qty:1,  cat:"Patient Equipment"},
   {id:19,name:"Blood warmer",                   qty:3,  cat:"Patient Equipment"},
-  {id:21,name:"Pressure bag",                   qty:16, cat:"Patient Equipment"},
-  {id:22,name:"Weighing machine",               qty:2,  cat:"Patient Equipment"},
-  {id:23,name:"Slider",                         qty:2,  cat:"Patient Equipment"},
-  {id:24,name:"Thermometer digital",            qty:10, cat:"Diagnostic"},
-  {id:25,name:"Stethoscope (Adult)",            qty:9,  cat:"Diagnostic"},
-  {id:26,name:"Stethoscope (Paeds)",            qty:4,  cat:"Diagnostic"},
-  {id:27,name:"Ambu bag Adult",                 qty:16, cat:"Airway & Resuscitation"},
-  {id:28,name:"Ambu bag Paeds",                 qty:8,  cat:"Airway & Resuscitation"},
-  {id:29,name:"Ambu bag Neo",                   qty:8,  cat:"Airway & Resuscitation"},
-  {id:30,name:"Medicine crusher",               qty:1,  cat:"Miscellaneous"},
-  {id:31,name:"Patient trolley",                qty:1,  cat:"Miscellaneous"},
-  {id:32,name:"Wheel chair",                    qty:1,  cat:"Miscellaneous"},
+  {id:20,name:"Pressure bag",                   qty:12, cat:"Patient Equipment"},
+  {id:21,name:"Weighing machine",               qty:2,  cat:"Patient Equipment"},
+  {id:22,name:"Slider",                         qty:1,  cat:"Patient Equipment"},
+  {id:23,name:"Ambu bag Adult",                 qty:9,  cat:"Airway & Resuscitation"},
+  {id:24,name:"Ambu bag Pediatric",             qty:8,  cat:"Airway & Resuscitation"},
+  {id:25,name:"Ambu bag Neonate",               qty:8,  cat:"Airway & Resuscitation"},
+  {id:26,name:"Thermometer",                    qty:8,  cat:"Diagnostic"},
+  {id:27,name:"Stethoscope Adult",              qty:9,  cat:"Diagnostic"},
+  {id:28,name:"Stethoscope Pediatric",          qty:2,  cat:"Diagnostic"},
+  {id:29,name:"Medicine crusher",               qty:1,  cat:"Miscellaneous"},
+  {id:30,name:"Patient trolley",                qty:1,  cat:"Miscellaneous"},
+  {id:31,name:"Wheel chair",                    qty:1,  cat:"Miscellaneous"},
 ];
 const CATS = [...new Set(ITEMS.map(i=>i.cat))];
 
@@ -500,6 +500,15 @@ function makeCard(item){
       '<div class="cnote">'+
         '<div class="nlbl">⚠️ Describe the issue:</div>'+
         '<textarea class="ntxt" id="note-'+item.id+'" rows="2" placeholder="e.g. Missing, not functional..." oninput="saveNote('+item.id+')">'+s.note+'</textarea>'+
+        (!useCounter?
+          '<div style="display:flex;align-items:center;gap:8px;margin-top:8px">'+
+            '<div class="nlbl" style="margin:0;white-space:nowrap">📦 Actual qty found:</div>'+
+            '<input type="number" min="0" id="actual-'+item.id+'" '+
+              'style="border:1px solid #fca5a5;border-radius:6px;padding:5px 8px;width:70px;font-size:13px;outline:none;" '+
+              'placeholder="0" value="'+(s.actual||'')+'" '+
+              'oninput="saveActual('+item.id+')">'+
+            '<span style="font-size:12px;color:#64748b">/ <strong>'+item.qty+'</strong></span>'+
+          '</div>':'')+
       '</div>':'');
   return div;
 }

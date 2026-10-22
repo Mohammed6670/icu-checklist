@@ -338,39 +338,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw_gxa3bET643iknD221frWYWKQcnSg_4FhZpI-ytf8Pr36AL0O8nPCHScFtUXyCqbNOw/exec';
 
 const ITEMS = [
-  {id:1, name:"Glucometer", qty:2, cat:"Clean Utility"},
-  {id:2, name:"Steel tray", qty:7, cat:"Clean Utility"},
-  {id:3, name:"Big steel tray", qty:4, cat:"Clean Utility"},
-  {id:4, name:"Injection tray", qty:13, cat:"Clean Utility"},
-  {id:5, name:"Steel spirit swab container", qty:2, cat:"Clean Utility"},
-  {id:6, name:"Steel thermometer holder", qty:2, cat:"Clean Utility"},
-  {id:7, name:"Jug one litre", qty:2, cat:"Clean Utility"},
-  {id:8, name:"Scissors", qty:10, cat:"Clean Utility"},
-  {id:9, name:"Vacuum flow-meter", qty:9, cat:"Clean Utility"},
-  {id:10, name:"Suction jar", qty:8, cat:"Clean Utility"},
-  {id:11, name:"CVP transducer", qty:16, cat:"Clean Utility"},
-  {id:12, name:"Dressing set", qty:4, cat:"CSSD Items"},
-  {id:13, name:"LP and catheterization set", qty:3, cat:"CSSD Items"},
-  {id:14, name:"Suturing set", qty:2, cat:"CSSD Items"},
-  {id:15, name:"CVP set", qty:5, cat:"CSSD Items"},
-  {id:16, name:"Suture removal set", qty:2, cat:"CSSD Items"},
-  {id:17, name:"Chest drainage set", qty:2, cat:"CSSD Items"},
-  {id:18, name:"Tracheostomy set", qty:2, cat:"CSSD Items"},
-  {id:19, name:"Arterial line set", qty:4, cat:"CSSD Items"},
-  {id:20, name:"Needle holder", qty:4, cat:"CSSD Items"},
-  {id:21, name:"POP cutting scissor", qty:1, cat:"CSSD Items"},
-  {id:22, name:"Artery forceps", qty:3, cat:"CSSD Items"},
-  {id:23, name:"Towel clips", qty:6, cat:"CSSD Items"},
-  {id:24, name:"Suture cutting scissor", qty:3, cat:"CSSD Items"},
-  {id:25, name:"Sponge holder", qty:3, cat:"CSSD Items"},
-  {id:26, name:"Kidney tray", qty:7, cat:"Dirty Utility"},
-  {id:27, name:"Basin", qty:1, cat:"Dirty Utility"},
-  {id:28, name:"Urinal A", qty:1, cat:"Dirty Utility"},
-  {id:29, name:"Urinal P", qty:1, cat:"Dirty Utility"},
-  {id:30, name:"Bed pan A", qty:1, cat:"Dirty Utility"},
-  {id:31, name:"Bed pan P", qty:1, cat:"Dirty Utility"},
-  {id:32, name:"Urine measuring jar", qty:6, cat:"Dirty Utility"},
-  {id:33, name:"Enema can", qty:2, cat:"Dirty Utility"},
+  {id:1,  name:"Glucometer",                    qty:2,  cat:"Clean Utility"},
+  {id:2,  name:"Steel tray",                    qty:7,  cat:"Clean Utility"},
+  {id:3,  name:"Big steel tray",                qty:4,  cat:"Clean Utility"},
+  {id:4,  name:"Injection tray",                qty:10, cat:"Clean Utility"},
+  {id:5,  name:"Steel spirit swab container",   qty:2,  cat:"Clean Utility"},
+  {id:6,  name:"Steel thermometer holder",      qty:2,  cat:"Clean Utility"},
+  {id:7,  name:"Jug one litre",                 qty:2,  cat:"Clean Utility"},
+  {id:8,  name:"Scissors",                      qty:10, cat:"Clean Utility"},
+  {id:9,  name:"Vacuum flow-meter",             qty:9,  cat:"Clean Utility"},
+  {id:10, name:"Suction jar",                   qty:8,  cat:"Clean Utility"},
+  {id:11, name:"CVP transducer",                qty:20, cat:"Clean Utility"},
+  {id:12, name:"Dressing set",                  qty:4,  cat:"CSSD Items"},
+  {id:13, name:"LP and catheterization set",    qty:3,  cat:"CSSD Items"},
+  {id:14, name:"Suturing set",                  qty:2,  cat:"CSSD Items"},
+  {id:15, name:"CVP set",                       qty:5,  cat:"CSSD Items"},
+  {id:16, name:"Suture removal set",            qty:2,  cat:"CSSD Items"},
+  {id:17, name:"Chest drainage set",            qty:2,  cat:"CSSD Items"},
+  {id:18, name:"Tracheostomy set",              qty:2,  cat:"CSSD Items"},
+  {id:19, name:"Arterial line set",             qty:4,  cat:"CSSD Items"},
+  {id:20, name:"Needle holder",                 qty:4,  cat:"CSSD Items"},
+  {id:21, name:"POP cutting scissor",           qty:1,  cat:"CSSD Items"},
+  {id:22, name:"Artery forceps",                qty:3,  cat:"CSSD Items"},
+  {id:23, name:"Towel clips",                   qty:6,  cat:"CSSD Items"},
+  {id:24, name:"Suture cutting scissor",        qty:3,  cat:"CSSD Items"},
+  {id:25, name:"Sponge holder",                 qty:3,  cat:"CSSD Items"},
+  {id:26, name:"Kidney tray",                   qty:7,  cat:"Dirty Utility"},
+  {id:27, name:"Basin",                         qty:1,  cat:"Dirty Utility"},
+  {id:28, name:"Urinal Adult",                  qty:1,  cat:"Dirty Utility"},
+  {id:29, name:"Urinal Pediatric",              qty:1,  cat:"Dirty Utility"},
+  {id:30, name:"Bed pan Adult",                 qty:1,  cat:"Dirty Utility"},
+  {id:31, name:"Bed pan Pediatric",             qty:1,  cat:"Dirty Utility"},
+  {id:32, name:"Urine measuring jar",           qty:6,  cat:"Dirty Utility"},
+  {id:33, name:"Enema can",                     qty:2,  cat:"Dirty Utility"},
 ];
 const CATS = [...new Set(ITEMS.map(i=>i.cat))];
 
@@ -502,6 +502,15 @@ function makeCard(item){
       '<div class="cnote">'+
         '<div class="nlbl">⚠️ Describe the issue:</div>'+
         '<textarea class="ntxt" id="note-'+item.id+'" rows="2" placeholder="e.g. Missing, not functional..." oninput="saveNote('+item.id+')">'+s.note+'</textarea>'+
+        (!useCounter?
+          '<div style="display:flex;align-items:center;gap:8px;margin-top:8px">'+
+            '<div class="nlbl" style="margin:0;white-space:nowrap">📦 Actual qty found:</div>'+
+            '<input type="number" min="0" id="actual-'+item.id+'" '+
+              'style="border:1px solid #fca5a5;border-radius:6px;padding:5px 8px;width:70px;font-size:13px;outline:none;" '+
+              'placeholder="0" value="'+(s.actual||'')+'" '+
+              'oninput="saveActual('+item.id+')">'+
+            '<span style="font-size:12px;color:#64748b">/ <strong>'+item.qty+'</strong></span>'+
+          '</div>':'')+
       '</div>':'');
   return div;
 }
