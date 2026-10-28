@@ -895,9 +895,8 @@ function sftCard(name,submitted,expected){
 /* ── HANDOVER ALERT ── */
 async function checkHandover(newShift) {
   document.getElementById('hoBanner').classList.remove('on');
-  const prevMap = {A:'Morning', N:'Afternoon'};
+  const prevMap = {M:'Night', A:'Morning', N:'Afternoon'};
   const prevShift = prevMap[newShift];
-  if (!prevShift) return; // Morning has no previous shift today
 
   try {
     const r = await fetch(SHEET_URL+'?sheet=Extra%20Medication');
