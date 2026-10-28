@@ -220,6 +220,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <option value="Arjwan">Arjwan</option>
         <option value="Asha">Asha</option>
         <option value="Bincy">Bincy</option>
+        <option value="Ceritta">Ceritta</option>
         <option value="Blessy">Blessy</option>
         <option value="Buthaina">Buthaina</option>
         <option value="Fatema">Fatema</option>
@@ -241,6 +242,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <option value="Samiya S">Samiya S</option>
         <option value="Samiya W">Samiya W</option>
         <option value="Sara">Sara</option>
+        <option value="Stella">Stella</option>
         <option value="Sheejamol">Sheejamol</option>
         <option value="Somiya">Somiya</option>
         <option value="Vipin">Vipin</option>
@@ -534,7 +536,7 @@ async function submitCL(){
     itemNames: Object.fromEntries(ITEMS.map(i=>[i.id,i.name])),
     itemQty:   Object.fromEntries(ITEMS.map(i=>[i.id,i.qty])),
     checklistId: 'Intubation Trolley',
-    rows:ITEMS.map(item=>({itemId:item.id,itemName:item.name,status:sm[item.id],note:state[item.id].note||'',actual:state[item.id].actual||''}))
+    rows:ITEMS.map(item=>({itemId:item.id,itemName:item.name,status:sm[item.id],note:state[item.id].note||'',actual:item.qty>10?'':state[item.id].actual||''}))
   };
 
   let ok2=false;
@@ -797,9 +799,8 @@ function sftCard(name,submitted,expected){
 /* ── HANDOVER ALERT ── */
 async function checkHandover(newShift) {
   document.getElementById('hoBanner').classList.remove('on');
-  const prevMap = {A:'Morning', N:'Afternoon'};
+  const prevMap = {M:'Night', A:'Morning', N:'Afternoon'};
   const prevShift = prevMap[newShift];
-  if (!prevShift) return; // Morning has no previous shift today
 
   try {
     const r = await fetch(SHEET_URL+'?sheet=Intubation%20Trolley');
