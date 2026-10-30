@@ -236,6 +236,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <option value="Buthaina">Buthaina</option>
         <option value="Fatema">Fatema</option>
         <option value="Gayatri">Gayatri</option>
+        <option value="Hamed">Hamed</option>
         <option value="Jincy">Jincy</option>
         <option value="Jincymole">Jincymole</option>
         <option value="Joy">Joy</option>
@@ -308,6 +309,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <h2>📊 Readiness Dashboard</h2>
       <div class="dctrl">
         <select class="dsel" id="dFilter" onchange="renderDash()">
+          <option value="1">Last 24 hrs</option>
+          <option value="3">Last 3 days</option>
           <option value="7">Last 7 days</option>
           <option value="14">Last 14 days</option>
           <option value="30">Last 30 days</option>
@@ -692,11 +695,15 @@ function gf(row,key){
 function filteredData(){
   const days=document.getElementById('dFilter').value;
   if(days==='all') return sheetData;
-  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-parseInt(days));
+  const n=parseInt(days);
+  const cutoff=new Date();
+  if(n===1){ cutoff.setHours(cutoff.getHours()-24); }
+  else { cutoff.setDate(cutoff.getDate()-n); }
   return sheetData.filter(row=>{
     const pts=(gf(row,'Date')||'').split('/');
     if(pts.length<3) return true;
-    const d=new Date(pts[2],pts[1]-1,pts[0]);
+    const timeStr=(gf(row,'Time')||'00:00').split(':');
+    const d=new Date(pts[2],pts[1]-1,pts[0],parseInt(timeStr[0]||0),parseInt(timeStr[1]||0));
     return d>=cutoff;
   });
 }
