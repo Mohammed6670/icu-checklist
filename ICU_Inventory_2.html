@@ -680,7 +680,7 @@ async function loadDash(){
   try{
     const r=await fetch(SHEET_URL+'?sheet=Inventory%202');
     const j=await r.json();
-    if(j.data){sheetData=j.data.filter(row=>['Morning','Afternoon','Night'].includes(row.Shift)&&row.Nurse&&row.Nurse.length>1&&row.Nurse!=='Night Shift'); renderDash();}
+    if(j.data){sheetData=j.data.filter(row=>['Morning','Afternoon','Night'].includes(row.Shift)&&row.Nurse&&row.Nurse.length>1&&(row.Date||'').includes('/')); renderDash();}
     else document.getElementById('dashArea').innerHTML='<div class="dmsg">⚠️ No data returned from Sheet.</div>';
   }catch(e){
     document.getElementById('dashArea').innerHTML='<div class="dmsg">⚠️ Connection failed. Check internet and try again.</div>';
