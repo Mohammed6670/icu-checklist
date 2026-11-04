@@ -990,5 +990,6 @@ setInterval(()=>{
   document.getElementById('dTime').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 },30000);
 </script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/icu-checklist/sw.js").then(reg=>{reg.update();});}</script>
 </body>
 </html>
