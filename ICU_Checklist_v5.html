@@ -624,7 +624,7 @@ async function submitCL(){
     itemQty:   Object.fromEntries(ITEMS.map(i=>[i.id,i.qty])),
     checklistId: 'Inventory 1',
     sheetName: 'Inventory 1',
-    rows:ITEMS.map(item=>({itemId:item.id,itemName:item.name,status:sm[item.id],note:state[item.id].note||'',actual:item.qty>10?'':state[item.id].actual||''}))
+    rows:ITEMS.map(item=>({itemId:item.id,itemName:item.name,status:sm[item.id],note:state[item.id].note||'',actual:item.qty>10?'':(state[item.id].actual||(sm[item.id]==='OK'&&item.qty?item.qty+'/'+item.qty:''))}))
   };
 
   let ok2=false;
