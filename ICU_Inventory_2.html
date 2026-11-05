@@ -173,18 +173,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .inv-badge.unknown{background:#f1f5f9;color:#64748b}
 
 /* HANDOVER BANNER */
-.ho-banner{display:none;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;
-  padding:14px 16px;margin:12px 14px;max-width:680px;margin-left:auto;margin-right:auto}
+.ho-banner{display:none;background:#fffbeb;border:1.5px solid #f59e0b;border-radius:12px;
+  padding:16px 18px;margin:12px 14px;max-width:680px;margin-left:auto;margin-right:auto}
 .ho-banner.on{display:block}
-.ho-ttl{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#92400e;margin-bottom:8px}
+.ho-ttl{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;color:#92400e;margin-bottom:10px}
+.ho-icon{width:34px;height:34px;background:#f59e0b;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
 .ho-shift{display:inline-block;background:#fef3c7;border:1px solid #fcd34d;border-radius:5px;
   padding:1px 7px;font-size:11px;font-weight:700;color:#92400e}
-.ho-items{list-style:none;padding:0;margin:0}
-.ho-items li{font-size:13px;color:#78350f;padding:4px 0;border-bottom:1px dashed #fde68a;display:flex;align-items:flex-start;gap:6px}
-.ho-items li:last-child{border-bottom:none}
-.ho-items li::before{content:"•";color:#d97706;font-weight:700;flex-shrink:0}
-.ho-footer{font-size:11px;color:#92400e;margin-top:8px;font-style:italic}
-.ho-dismiss{float:right;background:none;border:none;cursor:pointer;font-size:18px;color:#92400e;line-height:1;padding:0}
+.ho-by{font-size:11px;color:#b45309;font-weight:400;margin-top:1px}
+.ho-items{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.ho-item{background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:9px 13px;
+  display:flex;align-items:center;gap:10px}
+.ho-dot{width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0}
+.ho-name{font-size:13px;font-weight:600;color:#78350f;flex:1}
+.ho-qty{font-size:11px;color:#92400e;background:#fff;border:1px solid #fde68a;border-radius:4px;padding:2px 7px;white-space:nowrap}
+.ho-footer{font-size:11px;color:#92400e;margin-top:10px;font-style:italic}
+.ho-dismiss{float:right;background:none;border:1px solid #f59e0b;border-radius:6px;cursor:pointer;
+  font-size:12px;color:#92400e;padding:3px 10px;font-weight:600}
 
 </style>
 </head>
@@ -282,10 +287,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div class="ho-banner" id="hoBanner">
     <div class="ho-ttl">
-      <button class="ho-dismiss" onclick="dismissHO()" title="Dismiss">✕</button>
-      ⚠️ Handover Notice — <span class="ho-shift" id="hoShiftLbl"></span>
+      <div class="ho-icon">⚠️</div>
+      <div style="flex:1">
+        <div>Handover Alert — <span class="ho-shift" id="hoShiftLbl"></span></div>
+        <div class="ho-by" id="hoBy"></div>
+      </div>
+      <button class="ho-dismiss" onclick="dismissHO()">Dismiss ✓</button>
     </div>
-    <ul class="ho-items" id="hoItems"></ul>
+    <div class="ho-items" id="hoItems"></div>
     <div class="ho-footer">Please verify these items are resolved before starting your shift.</div>
   </div>
   <div class="abanner" id="alertBanner">
@@ -421,6 +430,7 @@ function init(){
   document.getElementById('dTime').textContent=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('dateShort').textContent=shiftDay(now);
   renderCL(); updateProg();
+  checkHandover(shift);
 }
 
 /* ── NAV ── */
@@ -916,9 +926,13 @@ function sftCard(name,submitted,expected){
 
 /* ── HANDOVER ALERT ── */
 async function checkHandover(newShift) {
-  document.getElementById('hoBanner').classList.remove('on');
+  const banner = document.getElementById('hoBanner');
+  banner.classList.remove('on');
   const prevMap = {M:'Night', A:'Morning', N:'Afternoon'};
   const prevShift = prevMap[newShift];
+
+  const dismissKey = 'ho_dismissed_' + prevShift + '_' + prevShiftDate(newShift);
+  try { if (sessionStorage.getItem(dismissKey)) return; } catch(e){}
 
   try {
     const r = await fetch(SHEET_URL+'?sheet=Inventory%202&days=1');
@@ -926,7 +940,6 @@ async function checkHandover(newShift) {
     if (!j.data || j.data.length === 0) return;
 
     const today = prevShiftDate(newShift);
-    // Find most recent submission from previous shift (using shift-aware date)
     const prev = j.data.filter(row =>
       gf(row,'Date') === today &&
       gf(row,'Shift') === prevShift
@@ -934,25 +947,40 @@ async function checkHandover(newShift) {
     if (prev.length === 0) return;
 
     const last = prev[prev.length - 1];
-    if (gf(last,'All Clear') === 'YES') return; // no issues — no banner
+    if (gf(last,'All Clear') === 'YES') return;
 
-    const detail = gf(last,'Issues Detail');
-    if (!detail || detail === 'None') return;
+    const issueItems = ITEMS.filter(item => {
+      const val = (gf(last, item.name) || '').toString().toUpperCase();
+      return val === 'ISSUE';
+    }).map(item => {
+      const actual = gf(last, item.name + ' [Actual]') || '';
+      return { name: item.name, required: item.qty, actual: actual };
+    });
+
+    if (issueItems.length === 0) return;
 
     const nurse = gf(last,'Nurse');
-    const issues = detail.split(' | ').filter(x => x.trim());
-    if (issues.length === 0) return;
+    const time = gf(last,'Time');
 
     document.getElementById('hoShiftLbl').textContent = prevShift + ' Shift';
-    document.getElementById('hoItems').innerHTML =
-      '<li style="font-weight:600;color:#92400e">Reported by: ' + nurse + '</li>' +
-      issues.map(i => '<li>' + i + '</li>').join('');
-    document.getElementById('hoBanner').classList.add('on');
+    document.getElementById('hoBy').textContent = 'Reported by: ' + (nurse||'—') + (time?' · '+time:'');
+    document.getElementById('hoItems').innerHTML = issueItems.map(item =>
+      '<div class="ho-item">' +
+        '<div class="ho-dot"></div>' +
+        '<span class="ho-name">' + item.name + '</span>' +
+        '<span class="ho-qty">' + (item.actual ? 'Found: '+item.actual+' / ' : '') + 'Required: '+item.required + '</span>' +
+      '</div>'
+    ).join('');
+    banner.classList.add('on');
   } catch(e) { console.error('Handover check failed:', e); }
 }
 
 function dismissHO() {
   document.getElementById('hoBanner').classList.remove('on');
+  const prevMap = {M:'Night', A:'Morning', N:'Afternoon'};
+  const prevShift = prevMap[shift];
+  const dismissKey = 'ho_dismissed_' + prevShift + '_' + prevShiftDate(shift);
+  try { sessionStorage.setItem(dismissKey, '1'); } catch(e){}
 }
 
 /* ── INCOMPLETE BLOCK ── */
