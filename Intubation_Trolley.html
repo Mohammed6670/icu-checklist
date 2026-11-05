@@ -596,7 +596,7 @@ function newCL(){
 async function loadDash(){
   document.getElementById('dashArea').innerHTML='<div class="dmsg">⏳ Loading data...</div>';
   try{
-    const r=await fetch(SHEET_URL+'?sheet=Intubation%20Trolley');
+    const r=await fetch(SHEET_URL+'?sheet=Intubation%20Trolley&days=1');
     const j=await r.json();
     if(j.data){sheetData=j.data; renderDash();}
     else document.getElementById('dashArea').innerHTML='<div class="dmsg">⚠️ No data returned from Sheet.</div>';
@@ -811,7 +811,7 @@ async function checkHandover(newShift) {
   const prevShift = prevMap[newShift];
 
   try {
-    const r = await fetch(SHEET_URL+'?sheet=Intubation%20Trolley');
+    const r = await fetch(SHEET_URL+'?sheet=Intubation%20Trolley&days=1');
     const j = await r.json();
     if (!j.data || j.data.length === 0) return;
 
