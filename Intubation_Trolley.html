@@ -477,6 +477,7 @@ function ans(id,a){
   if(submitted) return;
   state[id].ans=a;
   if(a==='yes'){ state[id].note=''; state[id].actual=''; }
+  if(a==='no' && !state[id].actual){ state[id].actual='0'; }
   document.getElementById('card-'+id).replaceWith(makeCard(ITEMS.find(i=>i.id===id)));
   updateProg(); updateAlert();
 }
