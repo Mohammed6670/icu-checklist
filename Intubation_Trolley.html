@@ -685,7 +685,7 @@ function renderDash(){
     });
   });
   const topI=Object.entries(ic).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const recent=[...data].slice(-8).reverse();
+  const recent=[...filteredData()].reverse();
 
   // ── Build Inventory Status from latest submission today ──
   const todayStr = shiftDay();
