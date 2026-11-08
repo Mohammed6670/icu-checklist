@@ -941,9 +941,15 @@ async function checkHandover(newShift) {
     // Build issue items from ITEMS array — check each item's status in the sheet row
     const issueItems = ITEMS.filter(item => {
       const val = (gf(last, item.name) || '').toString().toUpperCase();
-      return val === 'ISSUE';
+      return val.startsWith('ISSUE');
     }).map(item => {
-      const actual = gf(last, item.name + ' [Actual]') || '';
+      const rawVal = (gf(last, item.name) || '').toString();
+      let actual = gf(last, item.name + ' [Actual]') || '';
+      // If [Actual] is empty, try extracting number from "ISSUE (X/Y)" format
+      if (!actual) {
+        const m = rawVal.match(/\((\d+)\//);
+        if (m) actual = m[1];
+      }
       return { name: item.name, required: item.qty, actual: actual };
     });
 

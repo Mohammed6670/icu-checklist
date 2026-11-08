@@ -844,9 +844,11 @@ async function checkHandover(newShift) {
 
     const issueItems = ITEMS.filter(item => {
       const val = (gf(last, item.name) || '').toString().toUpperCase();
-      return val === 'ISSUE';
+      return val.startsWith('ISSUE');
     }).map(item => {
-      const actual = gf(last, item.name + ' [Actual]') || '';
+      const rawVal = (gf(last, item.name) || '').toString();
+      let actual = gf(last, item.name + ' [Actual]') || '';
+      if (!actual) { const m = rawVal.match(/\((\d+)\//); if (m) actual = m[1]; }
       return { name: item.name, required: item.qty, actual: actual };
     });
 
