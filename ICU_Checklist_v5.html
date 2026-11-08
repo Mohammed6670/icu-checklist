@@ -355,8 +355,8 @@ const ITEMS = [
   {id:1, name:"Portable monitor",               qty:2,  cat:"Monitoring"},
   {id:2, name:"Pulse oximetry",                 qty:2,  cat:"Monitoring"},
   {id:3, name:"DVT compression (2 connection)", qty:2,  cat:"Monitoring"},
-  {id:4, name:"Syringe pump",                   qty:36, cat:"Infusion Pumps"},
-  {id:5, name:"Infusion pump",                  qty:22, cat:"Infusion Pumps"},
+  {id:4, name:"Syringe pump",                   qty:36, cat:"Infusion Pumps", counter:true},
+  {id:5, name:"Infusion pump",                  qty:22, cat:"Infusion Pumps", counter:true},
   {id:6, name:"Feeding pump",                   qty:10, cat:"Infusion Pumps"},
   {id:7, name:"Defibrillator",                  qty:2,  cat:"Emergency Equipment"},
   {id:8, name:"ECG machine",                    qty:1,  cat:"Emergency Equipment"},
@@ -420,7 +420,7 @@ function prevShiftDate(currentShift) {
 }
 
 let state={}, shift='M', submitted=false, sheetData=[];
-ITEMS.forEach(i=>{ state[i.id]={ans:null,note:'',actual:'',count:i.qty>10?0:i.qty}; });
+ITEMS.forEach(i=>{ state[i.id]={ans:null,note:'',actual:'',count:i.counter?0:i.qty}; });
 
 /* ── INIT ── */
 function init(){
@@ -464,7 +464,7 @@ function renderCL(){
 
 function makeCard(item){
   const s=state[item.id];
-  const useCounter = item.qty > 10;
+  const useCounter = !!item.counter;
   const isIssue = useCounter ? (s.ans==='no') : (s.ans==='no');
   const isOk    = useCounter ? (s.ans==='yes') : (s.ans==='yes');
   const div=document.createElement('div');
@@ -620,7 +620,7 @@ async function submitCL(){
 
   const sm={};
   ITEMS.forEach(item=>{
-    if(item.qty>10) sm[item.id]=state[item.id].ans==='yes'?'OK ('+state[item.id].count+'/'+item.qty+')':'ISSUE ('+state[item.id].count+'/'+item.qty+')';
+    if(item.counter) sm[item.id]=state[item.id].ans==='yes'?'OK ('+state[item.id].count+'/'+item.qty+')':'ISSUE ('+state[item.id].count+'/'+item.qty+')';
     else sm[item.id]=state[item.id].ans==='yes'?'OK':state[item.id].ans==='no'?'ISSUE':'-';
   });
 
@@ -635,7 +635,7 @@ async function submitCL(){
     itemQty:   Object.fromEntries(ITEMS.map(i=>[i.id,i.qty])),
     checklistId: 'Inventory 1',
     sheetName: 'Inventory 1',
-    rows:ITEMS.map(item=>({itemId:item.id,itemName:item.name,status:sm[item.id],note:state[item.id].note||'',actual:item.qty>10?'':(state[item.id].actual||(sm[item.id]==='OK'&&item.qty?item.qty+'/'+item.qty:(sm[item.id]==='ISSUE'&&item.qty?'0/'+item.qty:'')))}))
+    rows:ITEMS.map(item=>({itemId:item.id,itemName:item.name,status:sm[item.id],note:state[item.id].note||'',actual:item.counter?'':(state[item.id].actual||(sm[item.id]==='OK'&&item.qty?item.qty+'/'+item.qty:(sm[item.id]==='ISSUE'&&item.qty?'0/'+item.qty:'')))}))
 
   };
 
@@ -684,7 +684,7 @@ function newCL(){
   document.getElementById('doneBanner').classList.remove('on');
   document.getElementById('alertBanner').classList.remove('on');
   document.getElementById('issSec').style.display='none';
-  ITEMS.forEach(i=>{state[i.id]={ans:null,note:'',actual:'',count:i.qty>10?0:i.qty};});
+  ITEMS.forEach(i=>{state[i.id]={ans:null,note:'',actual:'',count:i.counter?0:i.qty};});
   renderCL(); updateProg(); closeModal(); window.scrollTo(0,0);
 }
 
