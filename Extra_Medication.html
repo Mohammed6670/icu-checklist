@@ -317,7 +317,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="dash-hdr">
       <h2>📊 Readiness Dashboard</h2>
       <div class="dctrl">
-        <select class="dsel" id="dFilter" onchange="renderDash()">
+        <select class="dsel" id="dFilter" onchange="loadDash()">
           <option value="1">Last 24 hrs</option>
           <option value="3">Last 3 days</option>
           <option value="7">Last 7 days</option>
@@ -688,7 +688,9 @@ function newCL(){
 async function loadDash(){
   document.getElementById('dashArea').innerHTML='<div class="dmsg">⏳ Loading data...</div>';
   try{
-    const r=await fetch(SHEET_URL+'?sheet=Extra%20Medication&days=1');
+    const days=document.getElementById('dFilter').value;
+    const daysParam=days==='all'?'365':days;
+    const r=await fetch(SHEET_URL+'?sheet=Extra%20Medication&days='+daysParam);
     const j=await r.json();
     if(j.data){sheetData=j.data; renderDash();}
     else document.getElementById('dashArea').innerHTML='<div class="dmsg">⚠️ No data returned from Sheet.</div>';
