@@ -782,39 +782,7 @@ function renderDash(){
     ? todayData[todayData.length - 1]
     : data[data.length - 1];
 
-  const invItems = [
-    {id:1,  name:"Portable monitor",               qty:2},
-    {id:2,  name:"Pulse oximetry",                 qty:2},
-    {id:3,  name:"DVT compression (2 connection)", qty:2},
-    {id:4,  name:"Syringe pump",                   qty:36},
-    {id:5,  name:"Infusion pump",                  qty:22},
-    {id:6,  name:"Feeding pump",                   qty:10},
-    {id:7,  name:"Defibrillator",                  qty:2},
-    {id:8,  name:"ECG machine",                    qty:1},
-    {id:9,  name:"Breast pump with connection",    qty:1},
-    {id:10, name:"Light on mobile stand",          qty:1},
-    {id:11, name:"Oxygen double flow meter",       qty:2},
-    {id:12, name:"Oxygen twin port",               qty:2},
-    {id:13, name:"Oxygen regulator",               qty:2},
-    {id:14, name:"Oxygen trolley",                 qty:2},
-    {id:15, name:"Oxygen cylinder",                qty:5},
-    {id:16, name:"Emergency kit",                  qty:2},
-    {id:17, name:"Bed warmer",                     qty:2},
-    {id:18, name:"Extension board",                qty:1},
-    {id:19, name:"Blood warmer",                   qty:3},
-    {id:20, name:"Pressure bag",                   qty:12},
-    {id:21, name:"Weighing machine",               qty:2},
-    {id:22, name:"Slider",                         qty:1},
-    {id:23, name:"Ambu bag Adult",                 qty:9},
-    {id:24, name:"Ambu bag Pediatric",             qty:8},
-    {id:25, name:"Ambu bag Neonate",               qty:8},
-    {id:26, name:"Thermometer",                    qty:8},
-    {id:27, name:"Stethoscope Adult",              qty:9},
-    {id:28, name:"Stethoscope Pediatric",          qty:2},
-    {id:29, name:"Medicine crusher",               qty:1},
-    {id:30, name:"Patient trolley",                qty:1},
-    {id:31, name:"Wheel chair",                    qty:1},
-  ];
+  const invItems = ITEMS;
 
   const invShiftLbl = latestRow
     ? (gf(latestRow,'Shift') + ' — ' + gf(latestRow,'Nurse') + ' — ' + gf(latestRow,'Date'))
@@ -830,18 +798,20 @@ function renderDash(){
     let displayNum = '?';
     let subTxt = 'Not reported';
 
-    if (status === 'OK') {
+    if (status.startsWith('OK')) {
       cardCls='ok'; badgeCls='ok'; badgeTxt='✓ OK';
       numsClass='ok';
-      // Parse actual from "X / Y" format
+      // Parse actual from "X/Y" or "OK (X/Y)" format
+      const mCounter = status.match(/\((\d+)\//);
       const parts = actualRaw.split('/');
-      displayNum = parts[0] ? parts[0].trim() : item.qty;
+      displayNum = mCounter ? mCounter[1] : (parts[0] ? parts[0].trim() : item.qty);
       subTxt = 'of ' + item.qty + ' expected';
-    } else if (status === 'ISSUE') {
+    } else if (status.startsWith('ISSUE')) {
       cardCls='issue'; badgeCls='issue'; badgeTxt='⚠ Issue';
       numsClass='issue';
+      const mCounter = status.match(/\((\d+)\//);
       const parts = actualRaw.split('/');
-      displayNum = parts[0] ? parts[0].trim() : '?';
+      displayNum = mCounter ? mCounter[1] : (parts[0] ? parts[0].trim() : '?');
       subTxt = 'of ' + item.qty + ' expected';
     } else if (status === '-' || status === '') {
       cardCls='unknown'; badgeCls='unknown'; badgeTxt='—';
