@@ -632,7 +632,8 @@ async function submitCL(){
     itemQty:   Object.fromEntries(ITEMS.map(i=>[i.id,i.qty])),
     checklistId: 'Extra Medication',
     sheetName: 'Extra Medication',
-    rows:ITEMS.map(item=>({itemId:item.id,itemName:item.name,status:sm[item.id],note:state[item.id].note||'',actual:item.qty>10?'':(state[item.id].actual||(sm[item.id]==='OK'&&item.qty?item.qty+'/'+item.qty:''))}))
+    rows:ITEMS.map(item=>({itemId:item.id,itemName:item.name,status:sm[item.id],note:state[item.id].note||'',actual:item.qty>10?'':(state[item.id].actual||(sm[item.id]==='OK'&&item.qty?item.qty+'/'+item.qty:(sm[item.id]==='ISSUE'&&item.qty?'0/'+item.qty:'')))}))
+
   };
 
   let ok2=false;
